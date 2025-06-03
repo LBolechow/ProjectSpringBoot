@@ -8,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -45,8 +44,7 @@ class ProjektSpringApplicationTests {
     private ActivationTokenRepository activationTokenRepository;
     @Autowired
     private BlacklistedTokenRepository blacklistedTokenRepository;
-    @MockBean
-    private KafkaTemplate<String, String> kafkaTemplate;
+
 
     @Test
     void contextLoads() {

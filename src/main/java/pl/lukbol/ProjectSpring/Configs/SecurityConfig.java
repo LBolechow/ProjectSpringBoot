@@ -14,6 +14,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import pl.lukbol.ProjectSpring.Utils.JwtUtil;
+import pl.lukbol.ProjectSpring.Utils.SecurityPaths;
+
 @ComponentScan
 @Configuration
 @RequiredArgsConstructor
@@ -24,16 +26,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Wyłącz CSRF
+                .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/user/register", "/login", "/loginPage", "/",
-                                "/user/resetPasswordEmail/**", "/user/resetSite",
-                                "/user/resetPassword", "/activate/**", "/user/activateAccount?token=3D42e1dbe6-a3f2-483c-a1f1-0a7fa2e90529",
-                                "/registerPage", "/h2-console/**", "/test", "/test/**", "/error").permitAll()
-                        .requestMatchers("/user/deleteUser", "/user/apply",
-                                "/userDetails", "/user/login-history", "/user/logout")
-                        .hasAnyRole("ADMIN", "CLIENT")
+                        .requestMatchers(SecurityPaths.PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(SecurityPaths.CLIENT_ADMIN_ENDPOINTS).hasAnyRole("ADMIN", "CLIENT")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e

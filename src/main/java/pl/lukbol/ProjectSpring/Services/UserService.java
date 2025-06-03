@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,9 +29,15 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
 
+    public enum userRole{
+        ROLE_ADMIN,
+        ROLE_CLIENT
+    }
+
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserUtils userUtils;
+    private final String urlPath = "http://localhost:8080/main";
 
     private final UserRepository userRepository;
 
@@ -48,8 +53,6 @@ public class UserService {
 
     private final LoginHistoryRepository loginHistoryRepository;
 
-    @Autowired(required = false)
-    private KafkaTemplate<String, String> kafkaTemplate;
 
     public ResponseEntity<Map<String, Object>> authenticateUser(String usernameOrEmail,
                                                                 String password) {
@@ -79,17 +82,7 @@ public class UserService {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = jwtUtil.generateToken(username);
-            if (kafkaTemplate != null) {
-                kafkaTemplate.send("logins", username);
-                System.out.println("Wysłano wiadomość: " + username);
-            } else {
-                System.err.println("KafkaTemplate jest null!");
-            }
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", token);
-            response.put("redirectUrl", "http://localhost:8080/main");
-            response.put("username", username);
+            Map<String, Object> response = userUtils.buildLoginResponse(token, username, urlPath);
             userUtils.saveLogin(username);
             return ResponseEntity.ok(response);
 
@@ -120,8 +113,7 @@ public class UserService {
 
         User regUser = new User(name, surname, email, phoneNumber, passwordEncoder.encode(password), username, false);
 
-        //Automatycznie nadaję rolę Client podczas rejestracji.
-        Role role = roleRepository.findByName("ROLE_CLIENT");
+        Role role = roleRepository.findByName(userRole.ROLE_CLIENT.name());
         regUser.setRoles(Arrays.asList(role));
 
         try {
@@ -348,7 +340,7 @@ public class UserService {
         BlacklistedToken blacklistedToken = new BlacklistedToken(token, issuedAt);
         blacklistedTokenRepository.save(blacklistedToken);
 
-        //Przekierowanie do strony login po stronie frontendu.
+
         return userUtils.createSuccessResponse("Wylogowano pomyślnie");
 
     }

@@ -1,0 +1,92 @@
+.user-panel-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background-color: #f4f6fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.user-panel-box {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.user-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.user-panel-header h1 {
+  font-size: 1.6rem;
+  color: #1f2937;
+}
+
+.logout-button {
+  padding: 0.5rem 1rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.logout-button:hover {
+  background: #dc2626;
+}
+
+.user-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-card {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.info-card h2 {
+  margin-bottom: 0.75rem;
+  color: #374151;
+  font-size: 1.2rem;
+}
+
+.info-card p,
+.info-card li {
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.logs-table th,
+.logs-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.logs-table th {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-weight: 600;
+}
+
+.logs-table td {
+  color: #4b5563;
+}
+

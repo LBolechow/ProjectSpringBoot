@@ -27,7 +27,12 @@ public class UserUtils {
     private static final String PASSWORD_PATTERN =
             "^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-\\[\\]{};':\"\\\\|,.<>/?]).{8,}$";
     private final UserRepository userRepository;
-    private final JavaMailSender javaMailSender;
+
+    private final String urlPath = "http://localhost:8080/main";
+
+    private final String tokenPath = "http://localhost:8080/activate?token=";
+
+    private final String resetPath = "http://localhost:8080/reset?token=";
     private final PasswordTokenRepository passwordTokenRepository;
     private final ActivationTokenRepository activationTokenRepository;
     private final LoginHistoryRepository loginHistoryRepository;
@@ -63,6 +68,15 @@ public class UserUtils {
         return ResponseEntity.ok(response);
     }
 
+    public Map<String, Object> buildLoginResponse(String token, String username, String urlPath) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("redirectUrl", urlPath);
+        response.put("username", username);
+        return response;
+    }
+
+
     public boolean isNullOrEmpty(String value) {
         return value == null || value.isEmpty();
     }
@@ -86,21 +100,21 @@ public class UserUtils {
     }
 
     public void sendAccountActivationEmail(String email, String token) {
-        String activationLink = "http://localhost:8080/activate?token=" + token;
+        String activationLink = tokenPath + token;
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("Link aktywacyjny konta");
         message.setText("Kliknij w link aby aktywować konto: " + activationLink);
-        javaMailSender.send(message);
+
     }
 
     public void sendPasswordResetEmail(String email, String token) {
-        String resetLink = "http://localhost:8080/reset?token=" + token;
+        String resetLink = resetPath + token;
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("Resetowanie hasła");
         message.setText("Kliknij w link, aby zresetować swoje hasło: " + resetLink);
-        javaMailSender.send(message);
+
     }
 
 

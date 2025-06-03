@@ -31,7 +31,6 @@ public class User {
 
     private boolean activated;
 
-
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
             name = "users_roles",
@@ -41,7 +40,6 @@ public class User {
                     name = "role_id", referencedColumnName = "id"))
 
     @JsonIgnore
-
     private Collection<Role> roles;
 
     public User() {

@@ -50,20 +50,19 @@ public class UserController {
         return userService.deleteUser(authentication);
     }
 
-    //Wysyłam tym maila do użytkownika
+
     @PostMapping("/user/resetPasswordEmail")
     public ResponseEntity<Map<String, Object>> resetPassword(@RequestParam String email) {
 
         return userService.resetPasswordEmail(email);
     }
 
-    //Otwieram widok strony do resetowania hasła
+
     @GetMapping("/user/resetSite")
     public ModelAndView showResetPasswordPage(@RequestParam String token) {
         return userService.showResetPasswordPage(token);
     }
 
-    //Resetuję hasło w specjalnym widoku
     @PostMapping("/user/resetPassword")
     public ResponseEntity<Map<String, Object>> resetPassword(@RequestParam String token, @RequestParam String newPassword, @RequestParam String repeatPassword) {
         return userService.resetPassword(token, newPassword, repeatPassword);
