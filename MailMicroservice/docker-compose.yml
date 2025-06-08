@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  mailservice:
+    build:
+      context: ./mailservice
+    environment:
+      SMTP_SERVER: sandbox.smtp.mailtrap.io
+      SMTP_PORT: 587
+      SMTP_USER: f20300010b7537
+      SMTP_PASSWORD: 776b9ef2a916c8
+    networks:
+      - rabbitNetwork
+
+networks:
+  rabbitNetwork:
+    external: true
+

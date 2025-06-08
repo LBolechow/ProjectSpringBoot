@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+
+  redis:
+    image: redis:7.0
+    ports:
+      - "6380:6379"
+    networks:
+      - rabbitNetwork
+
+  python_consumer:
+    build: .
+    networks:
+      - rabbitNetwork
+    depends_on:
+      - redis
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+networks:
+  rabbitNetwork:
+    external: true
