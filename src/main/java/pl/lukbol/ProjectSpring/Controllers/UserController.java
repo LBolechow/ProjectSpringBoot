@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import pl.lukbol.ProjectSpring.Models.LoginHistory;
 import pl.lukbol.ProjectSpring.Models.User;
 import pl.lukbol.ProjectSpring.Services.UserService;
 
@@ -52,9 +51,8 @@ public class UserController {
 
 
     @PostMapping("/user/resetPasswordEmail")
-    public ResponseEntity<Map<String, Object>> resetPassword(@RequestParam String email) {
-
-        return userService.resetPasswordEmail(email);
+    public ResponseEntity<Map<String, Object>> sendResetPasswordEmail(@RequestParam String email) {
+        return userService.sendResetPasswordEmail(email);
     }
 
 
@@ -78,11 +76,6 @@ public class UserController {
         return userService.logout(request);
     }
 
-    @GetMapping("/user/login-history")
-    public ResponseEntity<List<LoginHistory>> getLoginHistory(Authentication authentication) {
-
-        return userService.getLoginHistory(authentication);
-    }
 
     @GetMapping("/test")
     public ResponseEntity<String> testEndpoint() {

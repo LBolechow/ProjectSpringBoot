@@ -3,15 +3,12 @@ package pl.lukbol.ProjectSpring.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import pl.lukbol.ProjectSpring.Models.ActivationToken;
-import pl.lukbol.ProjectSpring.Models.LoginHistory;
 import pl.lukbol.ProjectSpring.Models.PasswordToken;
 import pl.lukbol.ProjectSpring.Models.User;
 import pl.lukbol.ProjectSpring.Repositories.ActivationTokenRepository;
-import pl.lukbol.ProjectSpring.Repositories.LoginHistoryRepository;
 import pl.lukbol.ProjectSpring.Repositories.PasswordTokenRepository;
 import pl.lukbol.ProjectSpring.Repositories.UserRepository;
 
@@ -35,7 +32,6 @@ public class UserUtils {
     private final String resetPath = "http://localhost:8080/reset?token=";
     private final PasswordTokenRepository passwordTokenRepository;
     private final ActivationTokenRepository activationTokenRepository;
-    private final LoginHistoryRepository loginHistoryRepository;
 
     public boolean emailExists(String email) {
         return userRepository.findByEmail(email) != null;
@@ -81,12 +77,12 @@ public class UserUtils {
         return value == null || value.isEmpty();
     }
 
-    public void createPasswordResetTokenForUser(User user) {
+    public String createPasswordResetTokenForUser(User user) {
         String token = UUID.randomUUID().toString();
         Date expiryDate = new Date(System.currentTimeMillis() + 3600000); //+ 1 godzina
         PasswordToken myToken = new PasswordToken(token, user, expiryDate);
         passwordTokenRepository.save(myToken);
-        sendPasswordResetEmail(user.getEmail(), token);
+        return token;
     }
 
     public void createAccountActivationToken(String email) {
@@ -108,22 +104,10 @@ public class UserUtils {
 
     }
 
-    public void sendPasswordResetEmail(String email, String token) {
-        String resetLink = resetPath + token;
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Resetowanie hasła");
-        message.setText("Kliknij w link, aby zresetować swoje hasło: " + resetLink);
 
-    }
-
-
-    public void saveLogin(String username) {
-        Date currentDate = new Date();
-        LoginHistory loginHistory = new LoginHistory();
-        loginHistory.setUsername(username);
-        loginHistory.setLoginTime(currentDate);
-        loginHistoryRepository.save(loginHistory);
+    public String generatePasswordResetLink(String resetToken) {
+        String baseUrl = "http://localhost:8080/resetPassword";
+        return baseUrl + "?token=" + resetToken;
     }
 
 }

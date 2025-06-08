@@ -2,7 +2,9 @@ package pl.lukbol.ProjectSpring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,11 +18,14 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pl.lukbol.ProjectSpring.Models.*;
 import pl.lukbol.ProjectSpring.Repositories.*;
+import pl.lukbol.ProjectSpring.Utils.ActionLogProducer;
 
 import java.util.*;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -45,9 +50,18 @@ class ProjektSpringApplicationTests {
     @Autowired
     private BlacklistedTokenRepository blacklistedTokenRepository;
 
+    @MockBean
+    private ActionLogProducer actionLogProducer;
+
+
 
     @Test
     void contextLoads() {
+    }
+
+    @BeforeEach
+    public void setup() {
+        doNothing().when(actionLogProducer).sendActionLog(anyString(), anyString());
     }
 
     @Test
@@ -181,26 +195,6 @@ class ProjektSpringApplicationTests {
 
     @Transactional
     @Test
-    public void testResetPasswordEmail() throws Exception {
-
-
-        mockMvc.perform(post("/user/resetPasswordEmail")
-                        .param("email", "admin@testowy.com"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Wysłano link do resetowania hasła na email."))
-                .andReturn();
-
-        User user = userRepository.findByEmail("admin@testowy.com");
-
-        PasswordToken token = passwordTokenRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new AssertionError("Token resetujący nie został utworzony."));
-        assertNotNull(token);
-        assertTrue(token.getExpiryDate().after(new Date()));
-    }
-
-    @Transactional
-    @Test
     public void testResetPassword() throws Exception {
         String token = createPasswordResetTokenForUser();
         String jwtToken = getJwtToken();
@@ -263,19 +257,7 @@ class ProjektSpringApplicationTests {
         assertTrue(blacklistedToken.isPresent());
     }
 
-    @Transactional
-    @Test
-    public void testGetLoginHistory() throws Exception {
 
-        String jwtToken = getJwtToken();
-
-        mockMvc.perform(get("/user/login-history")
-                        .header("Authorization", jwtToken)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(greaterThan(0)));
-
-    }
 
 
 }

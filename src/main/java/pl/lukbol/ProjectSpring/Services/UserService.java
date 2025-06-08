@@ -20,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 import pl.lukbol.ProjectSpring.Models.*;
 import pl.lukbol.ProjectSpring.Repositories.*;
+import pl.lukbol.ProjectSpring.Utils.ActionLogProducer;
 import pl.lukbol.ProjectSpring.Utils.JwtUtil;
+import pl.lukbol.ProjectSpring.Utils.MailProducer;
 import pl.lukbol.ProjectSpring.Utils.UserUtils;
 
 import java.util.*;
@@ -28,6 +30,24 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
+    public enum ActionType {
+        LOG("Logowanie"),
+        REGISTER("Rejestracja"),
+        CHANGE_PROFILE("Zmiana danych konta"),
+        DELETE_USER("Użytkownik został usunięty"),
+        RESET_MAIL("Wysłano e-mail z do restowania hasła");
+
+        private final String action;
+
+        ActionType(String action) {
+            this.action = action;
+        }
+
+        public String getAction() {
+            return action;
+        }
+    }
 
     public enum userRole{
         ROLE_ADMIN,
@@ -51,7 +71,13 @@ public class UserService {
 
     private final BlacklistedTokenRepository blacklistedTokenRepository;
 
-    private final LoginHistoryRepository loginHistoryRepository;
+
+
+    private final MailProducer mailProducer;
+
+    private final ActionLogProducer actionLogProducer;
+
+
 
 
     public ResponseEntity<Map<String, Object>> authenticateUser(String usernameOrEmail,
@@ -83,7 +109,7 @@ public class UserService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = jwtUtil.generateToken(username);
             Map<String, Object> response = userUtils.buildLoginResponse(token, username, urlPath);
-            userUtils.saveLogin(username);
+            actionLogProducer.sendActionLog(username,ActionType.LOG.getAction() );
             return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
@@ -128,7 +154,7 @@ public class UserService {
             return userUtils.createErrorResponse("Błąd: " + e.getMessage());
         }
 
-
+        actionLogProducer.sendActionLog(username,ActionType.REGISTER.getAction() );
         return userUtils.createSuccessResponse("Poprawnie utworzono konto. Na adres email został wysłany link aktywacyjny.");
     }
 
@@ -186,6 +212,7 @@ public class UserService {
             user.setPhoneNumber(phoneNumber);
             user.setEmail(email);
             userRepository.save(user);
+            actionLogProducer.sendActionLog(username,ActionType.CHANGE_PROFILE.getAction() );
         } catch (DataAccessException e) {
             return userUtils.createErrorResponse("Błąd: " + e.getMessage());
         }
@@ -206,6 +233,7 @@ public class UserService {
 
         try {
             userRepository.delete(user);
+            actionLogProducer.sendActionLog(username,ActionType.DELETE_USER.getAction() );
         } catch (DataAccessException e) {
             return userUtils.createErrorResponse("Błąd: " + e.getMessage());
         }
@@ -214,18 +242,23 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseEntity<Map<String, Object>> resetPasswordEmail(String email) {
+    public ResponseEntity<Map<String, Object>> sendResetPasswordEmail(String email) {
         User user = userRepository.findOptionalByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Brak użytkownika z emailem: " + email));
 
         passwordTokenRepository.deleteByUserId(user.getId());
 
         try {
-            userUtils.createPasswordResetTokenForUser(user);
+            String token = userUtils.createPasswordResetTokenForUser(user);
+            String to = user.getEmail();
+            String subject = "Resetowanie hasła";
+            String content = "Link do resetowania hasła: " + userUtils.generatePasswordResetLink(token);
+            mailProducer.sendResetPasswordMail(to, subject, content);
+
         } catch (DataAccessException e) {
             return userUtils.createErrorResponse("Błąd: " + e.getMessage());
         }
-
+        actionLogProducer.sendActionLog(user.getUsername(),ActionType.RESET_MAIL.getAction() );
         return userUtils.createSuccessResponse("Wysłano link do resetowania hasła na email.");
     }
 
@@ -345,25 +378,7 @@ public class UserService {
 
     }
 
-    public ResponseEntity<List<LoginHistory>> getLoginHistory(Authentication authentication) {
-        if (authentication == null) {
-            return null;
-        }
-        Object principal = authentication.getPrincipal();
 
-        String username = ((UserDetails) principal).getUsername();
-        List<LoginHistory> loginHistories = null;
-
-        try {
-            loginHistories = loginHistoryRepository.findAllByUsername(username);
-
-        } catch (DataAccessException e) {
-            userUtils.createErrorResponse("Błąd: " + e.getMessage());
-        }
-
-
-        return ResponseEntity.ok(loginHistories);
-    }
 
 
 }
