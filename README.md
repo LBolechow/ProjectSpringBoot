@@ -8,9 +8,11 @@ User Microservice – Key Features
 
     Password Reset:
     Reset password via email link (valid for a limited time).
-
-    Email Verification:
-    Activation link sent after registration (e.g., valid for 24 hours).
-
+    
     Logout & Account Deletion:
     Logout invalidates JWT. Users can permanently delete their account and data.
+
+Password Reset Notification Service (Python, RabbitMQ)
+
+A Python-based mailer service that listens to a RabbitMQ queue and sends password reset emails to users. When a password reset event is published by the User Microservice, the mailer consumes the message, generates a secure reset link, and delivers it to the user's registered email address.
+    
