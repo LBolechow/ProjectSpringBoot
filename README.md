@@ -23,4 +23,6 @@ Event Logging Service (Python, Redis, RabbitMQ)
 
     A Python-based microservice that acts as a RabbitMQ consumer, responsible for capturing and storing system events in Redis. It listens to various event queues (e.g., user registration, login, password reset) and logs structured event.
 
-Frontend is made in Angular.
+Frontend
+    
+    The frontend is built with Angular, providing a responsive and user-friendly interface for registration, login, profile management, and password reset.
